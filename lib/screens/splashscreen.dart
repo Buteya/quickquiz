@@ -17,7 +17,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   _navigateToLogin() async {
     await Future.delayed(const Duration(seconds: 4), () {});
-    Navigator.pushReplacementNamed(context, '/quickquizhome');
+    if(mounted){
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   @override
@@ -32,11 +34,9 @@ class _SplashScreenState extends State<SplashScreen> {
               alignment: AlignmentDirectional.bottomCenter,
               children: [
                 Image.asset('assets/icons/app/quickquizlogo.png'),
-                Positioned(
-                  left:222,
-                  bottom: 100,
+                Positioned(bottom: 50,
                   child: SizedBox(
-                    width: 35,
+                    width: MediaQuery.sizeOf(context).width *.3,
                     child: LinearProgressIndicator(),
                   ),
                 ),
