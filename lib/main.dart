@@ -1,12 +1,36 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shortquiz/auth/forgotpasswordscreen.dart';
 import 'package:shortquiz/auth/loginscreen.dart';
 import 'package:shortquiz/auth/signupscreen.dart';
 import 'package:shortquiz/screens/homescreen.dart';
 import 'package:shortquiz/screens/splashscreen.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'firebase_options.dart';
+import 'models/user.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => UserModel(
+            id: '',
+            name: '',
+            email: '',
+            password: '',
+            createdAt: DateTime.now(),
+          ),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,9 +43,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         '/quickquizhome': (context) => const HomeScreen(),
-        '/login' : (context)=> const LoginScreen(),
-        '/signup' : (context) => const SignupScreen(),
-        '/forgotpassword' : (context) => const  ForgotPasswordScreen()
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/forgotpassword': (context) => const ForgotPasswordScreen()
       },
       title: 'Quick Quiz',
       theme: ThemeData(
