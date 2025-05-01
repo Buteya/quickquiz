@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class UserModel extends ChangeNotifier {
@@ -18,28 +19,127 @@ class UserModel extends ChangeNotifier {
   });
 
   final List<UserModel> _users = [];
-
   UnmodifiableListView<UserModel> get users => UnmodifiableListView(_users);
+  final _db = FirebaseFirestore.instance;
 
-  void addUser(UserModel user){
+  void signup(UserModel user, BuildContext context) async {
+    var ref = await _db
+        .collection("users")
+        .where("email", isEqualTo: user.email)
+        .get();
+    print(ref.docs.length);
+
+    final usr = <String, dynamic>{
+      "id": user.id,
+      "name": user.name,
+      "email": user.email,
+      "password": user.password,
+      "createdAt": user.createdAt,
+      "timestamp": FieldValue.serverTimestamp(),
+    };
+
     _users.add(user);
+    print(ref.docs.length);
+
+    if (ref.docs.isEmpty) {
+      print(ref.docs.length);
+      _db.collection("users").doc(user.id).set(usr).then((_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("user added successfully"),
+            ),
+          );
+          Navigator.of(context).pushNamed('/login');
+        }
+        print("user added successfully");
+      }).catchError((e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e),
+            ),
+          );
+        }
+        print(e);
+      });
+    } else {
+      print('failed to add user');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('user with email already exists'),
+          ),
+        );
+        Navigator.of(context).pushNamed('/signup');
+      }
+    }
     notifyListeners();
   }
 
-  void updateUser(UserModel user,int index){
+  void login(String email, String password, BuildContext context) async {
+    var emailInDb =
+        await _db.collection("users").where("email", isEqualTo: email).get();
+    var passwordInDb = await _db
+        .collection("users")
+        .where("password", isEqualTo: password)
+        .get();
+    print(emailInDb.docs.first.data()['email']);
+    print(passwordInDb.docs.first.data()['password']);
+
+
+
+        if (emailInDb.docs.first.data()['email'] == email &&
+            passwordInDb.docs.first.data()['password'] == password) {
+          print('login successful');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: Duration(seconds: 1),
+                content: Text('login successful'),
+              ),
+            );
+            Navigator.of(context).pushNamed('/quickquizhome');
+          }
+        } else {
+          print('failed to login');
+          if(context.mounted){
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('login failed'),),);
+            Navigator.of(context).pushNamed('/login');
+          }
+
+      }
+
+  }
+
+  void updateUser(UserModel user, int index) async {
+    final usr = <String, dynamic>{
+      "id": user.id,
+      "name": user.name,
+      "email": user.email,
+      "password": user.password,
+      "createdAt": user.createdAt,
+      "timestamp": FieldValue.serverTimestamp(),
+    };
     UserModel updateUser = _users.elementAt(index);
     updateUser = user;
+    _db
+        .collection("users")
+        .doc(user.id)
+        .set(usr, SetOptions(merge: true))
+        .catchError((e) {
+      print(e);
+    });
     notifyListeners();
   }
 
-  void deleteUser(int index){
+  void deleteUser(int index) {
     _users.removeAt(index);
     notifyListeners();
   }
 
-  void removeAllUsers(){
+  void removeAllUsers() {
     _users.clear();
     notifyListeners();
   }
-
 }
