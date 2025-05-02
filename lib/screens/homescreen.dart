@@ -19,7 +19,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset("assets/icons/app/quickquizlogo.png",scale: 20,),
+            Text("quickquiz"),
+          ],
+        ),
+        actions:[
+          CircleAvatar(child: Icon(Icons.person),),
+        ],
+      ),
       body: ListView(
         children:[ ConstrainedBox(
           constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height *0.77,),
