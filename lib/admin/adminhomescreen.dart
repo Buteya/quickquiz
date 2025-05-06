@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class UserProfile extends StatefulWidget {
-  const UserProfile({super.key});
+class AdminHomeScreen extends StatefulWidget {
+  const AdminHomeScreen({super.key});
 
   @override
-  State<UserProfile> createState() => _UserProfileState();
+  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
 
-class _UserProfileState extends State<UserProfile> {
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,17 +21,15 @@ class _UserProfileState extends State<UserProfile> {
               child: Text('drawer header'),
             ),
             ListTile(
-              title: const Text('admin panel'),
+              title: const Text('create question'),
               onTap: () {
                 // Update the state of the app.
                 // ...
-
-                Navigator.of(context).pushNamed('/quickquizadminhome');
-                // Navigator.pop(context);
+                Navigator.of(context).pushNamed('/createquestion');
               },
             ),
             ListTile(
-              title: const Text('settings'),
+              title: const Text('create user'),
               onTap: () {
                 // Update the state of the app.
                 // ...
@@ -67,19 +65,6 @@ class _UserProfileState extends State<UserProfile> {
             ),
           ),
         ],
-      ),
-      body: Form(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: [
-              CircleAvatar(child: Icon(Icons.person),),
-              IconButton(onPressed: (){}, icon: Icon(Icons.camera)),
-              TextFormField(decoration: InputDecoration(labelText: "username"),),
-              TextFormField(decoration: InputDecoration(labelText: "email"),),
-            ],
-          ),
-        ),
       ),
     );
   }

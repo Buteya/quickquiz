@@ -1,7 +1,9 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
 
 class UserModel extends ChangeNotifier {
   final String id;
@@ -22,7 +24,10 @@ class UserModel extends ChangeNotifier {
   UnmodifiableListView<UserModel> get users => UnmodifiableListView(_users);
   final _db = FirebaseFirestore.instance;
 
+
   void signup(UserModel user, BuildContext context) async {
+    final encodedPassword =
+    base64.encode(utf8.encode(user.password));
     var ref = await _db
         .collection("users")
         .where("email", isEqualTo: user.email)
@@ -33,7 +38,7 @@ class UserModel extends ChangeNotifier {
       "id": user.id,
       "name": user.name,
       "email": user.email,
-      "password": user.password,
+      "password": encodedPassword,
       "createdAt": user.createdAt,
       "timestamp": FieldValue.serverTimestamp(),
     };
@@ -54,10 +59,11 @@ class UserModel extends ChangeNotifier {
         }
         print("user added successfully");
       }).catchError((e) {
+        print(e.toString());
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e),
+              content: Text('error signing in...'),
             ),
           );
         }
@@ -78,19 +84,33 @@ class UserModel extends ChangeNotifier {
   }
 
   void login(String email, String password, BuildContext context) async {
-    var emailInDb =
-        await _db.collection("users").where("email", isEqualTo: email).get();
-    var passwordInDb = await _db
-        .collection("users")
-        .where("password", isEqualTo: password)
-        .get();
-    print(emailInDb.docs.first.data()['email']);
-    print(passwordInDb.docs.first.data()['password']);
+    late  QuerySnapshot<Map<String, dynamic>>? emailInDb;
+    late QuerySnapshot<Map<String, dynamic>>? passwordInDb;
+    try{
+       emailInDb =
+      await _db.collection("users").where("email", isEqualTo: email).get().catchError( (e) => print("Error getting document: $e"),);
+       passwordInDb = await _db
+          .collection("users")
+          .where("password", isEqualTo:  base64.encode(utf8.encode(password)))
+          .get().catchError((e) => print("Error getting document: $e"),);
+    }catch(e){
+      print(e.toString());
+      print('failed to login');
+      if(context.mounted){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('login failed'),),);
+        Navigator.of(context).pushNamed('/login');
+      }
+    }
 
 
+    // print(emailInDb.docs.first.data()['email']);
+    // print(passwordInDb.docs.first.data()['password']);
+    // print(utf8.decode(base64.decode(passwordInDb.docs.first.data()['password'])));
 
-        if (emailInDb.docs.first.data()['email'] == email &&
-            passwordInDb.docs.first.data()['password'] == password) {
+    var decodedPassword = utf8.decode(base64.decode(passwordInDb?.docs.first.data()['password']));
+
+        if (emailInDb?.docs.first.data()['email'] == email &&
+            decodedPassword == password) {
           print('login successful');
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
